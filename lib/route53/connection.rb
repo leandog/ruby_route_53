@@ -43,7 +43,7 @@ module Route53
       query = []
       zones = []
       while truncated
-        if !name.nil? && name.start_with?("/hostedzone/")
+        if name && name.start_with?("/hostedzone/")
           resp = request("#{@base_url}#{name}")
           truncated = false
         else
@@ -55,6 +55,7 @@ module Route53
         elements.each do |e|
           zones.push(Zone.new(e.search("Name").first.inner_text,
                               e.search("Id").first.inner_text,
+                              e.search("NameServer").map(&:inner_text),
                               self))
         end
         truncated = (zone_list.search("IsTruncated").first.inner_text == "true") if truncated

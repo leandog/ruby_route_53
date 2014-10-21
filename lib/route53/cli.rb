@@ -160,7 +160,7 @@ module Route53
 
       def new_zone
         if @options.zone
-          new_zone = Route53::Zone.new(@options.zone,nil,conn)
+          new_zone = Route53::Zone.new(@options.zone,nil,nil,conn)
           puts "Creating New Zone #{@options.zone}"
           resp = new_zone.create_zone(@options.comment)
           if resp.error?

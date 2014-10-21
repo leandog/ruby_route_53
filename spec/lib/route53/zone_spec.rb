@@ -46,6 +46,14 @@ describe Route53::Zone do
         expect(new_zone.host_url).to eq('/hostedzone/Z3E84CELCS8770')
       end
     end
+
+    it "sets the nameservers" do
+      VCR.use_cassette("aws_zone", :record => :none) do
+        new_zone = Route53::Zone.new("example.com.", nil, conn)
+        resp = new_zone.create_zone
+        expect(new_zone.nameservers).to eq(["ns-1621.awsdns-10.co.uk", "ns-510.awsdns-63.com", "ns-1232.awsdns-26.org", "ns-806.awsdns-36.net"])
+      end
+    end
   end
 
   describe "#get_records" do

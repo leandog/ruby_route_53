@@ -5,20 +5,21 @@ module Route53
     attr_reader :records
     attr_reader :conn
 
-    def initialize(name,host_url,conn)
+    def initialize(name, host_url, nameservers, conn)
       @name = name
       unless @name.end_with?(".")
         @name += "."
       end
       @host_url = host_url
+      @nameservers = nameservers
       @conn = conn
     end
 
     def nameservers
-      return @nameservers if @nameservers
-      response = Nokogiri::XML(@conn.request(@conn.base_url + @host_url).to_s)
-      @nameservers = response.search("NameServer").map(&:inner_text)
-      @nameservers
+      @nameservers ||= begin
+        response = Nokogiri::XML(@conn.request(@conn.base_url + @host_url).to_s)
+        response.search("NameServer").map(&:inner_text)
+      end
     end
 
     def delete_zone
@@ -44,7 +45,8 @@ module Route53
       resp = @conn.request(@conn.base_url + "/hostedzone","POST",xml_str)
       resp_xml = Nokogiri::XML(resp.raw_data)
       @host_url = resp_xml.search("HostedZone").first.search("Id").first.inner_text
-      return resp
+      @nameservers = resp_xml.search("NameServer").map(&:inner_text)
+      resp
     end
 
     def get_records(type="ANY")
