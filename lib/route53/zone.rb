@@ -11,12 +11,17 @@ module Route53
         @name += "."
       end
       @host_url = host_url
-      @nameservers = nameservers
+      self.nameservers = nameservers
       @conn = conn
     end
 
+    def nameservers=(val)
+      @nameservers = Array(val).empty? ? nil : val
+    end
+
     def nameservers
-      @nameservers ||= begin
+      return @nameservers if @nameservers
+      self.nameservers = begin
         response = Nokogiri::XML(@conn.request(@conn.base_url + @host_url).to_s)
         response.search("NameServer").map(&:inner_text)
       end
@@ -45,7 +50,7 @@ module Route53
       resp = @conn.request(@conn.base_url + "/hostedzone","POST",xml_str)
       resp_xml = Nokogiri::XML(resp.raw_data)
       @host_url = resp_xml.search("HostedZone").first.search("Id").first.inner_text
-      @nameservers = resp_xml.search("NameServer").map(&:inner_text)
+      self.nameservers = resp_xml.search("NameServer").map(&:inner_text)
       resp
     end
 
